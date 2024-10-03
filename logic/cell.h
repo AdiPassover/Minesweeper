@@ -4,12 +4,6 @@
 #include <stdbool.h>
 
 typedef enum {
-    GAME_OVER,
-    GAME_WON,
-    GAME_ONGOING
-} GameState;
-
-typedef enum {
     MINE  = -1,
     EMPTY = 0,
     ONE   = 1,
@@ -22,10 +16,21 @@ typedef enum {
     EIGHT = 8
 } CellType;
 
+enum {
+    HIDDEN_CHAR = ' ',
+    EMPTY_REVEALED_CHAR = '#',
+    FLAGGED_CHAR = 'F',
+    MINE_CHAR = '*',
+    MINE_EXPLODED_CHAR = 'X',
+    FALSE_FLAG_CHAR = 'L'
+};
+
 typedef struct {
     CellType type;
     bool is_revealed;
     bool is_flagged;
 } Cell;
+
+char cell_to_char(Cell cell);
 
 #endif //MINESWEEPER_CELL_H

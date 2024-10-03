@@ -1,0 +1,10 @@
+#ifndef MINESWEEPER_GAME_STATE_H
+#define MINESWEEPER_GAME_STATE_H
+
+typedef enum {
+    GAME_OVER,
+    GAME_WON,
+    GAME_ONGOING
+} GameState;
+
+#endif //MINESWEEPER_GAME_STATE_H
