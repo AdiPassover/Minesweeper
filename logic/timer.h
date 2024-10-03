@@ -5,6 +5,9 @@
 #include <pthread.h>
 #include <gtk/gtk.h>
 
+// Check every interval milliseconds for the timer to stop
+extern const int CHECK_INTERVAL_MS;
+
 // Callback function type for updating the GUI
 typedef void (*TimerCallback)(GtkWidget *timer_display, unsigned int seconds);
 

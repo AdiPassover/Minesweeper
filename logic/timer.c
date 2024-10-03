@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <glib.h>  // For g_idle_add()
 
+const int CHECK_INTERVAL_MS = 50;
+
 // Wrapper function to pass the TimerData to the callback safely
 gboolean timer_callback_wrapper(gpointer data) {
     TimerData *timer_data = (TimerData *)data;
@@ -14,8 +16,15 @@ static void* timer_thread_function(void *arg) {
     TimerData *timer_data = (TimerData *)arg;
     timer_data->timer_seconds = 0;
 
+
+    const int checks_per_second = 1000 / CHECK_INTERVAL_MS;
+
     while (timer_data->timer_running) {
-        sleep(1);
+        for (int i = 0; i < checks_per_second; i++) {
+            if (!timer_data->timer_running)
+                return NULL;
+            usleep(CHECK_INTERVAL_MS * 1000);
+        }
         timer_data->timer_seconds++;
 
         // Use g_idle_add to safely call the wrapper function with TimerData
@@ -24,6 +33,7 @@ static void* timer_thread_function(void *arg) {
 
     return NULL;
 }
+
 
 
 void init_timer(TimerData *timer_data, TimerCallback callback, GtkWidget *timer_display) {

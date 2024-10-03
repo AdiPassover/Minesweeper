@@ -139,10 +139,17 @@ void run_minesweeper_gui(int argc, char** argv) {
         gtk_box_pack_start(GTK_BOX(timer_display), timer_image, FALSE, FALSE, 0);
     }
 
+    // Create spacer widgets
+    GtkWidget *left_spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget *right_spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
     // Pack statistics bar
     gtk_box_pack_start(GTK_BOX(statistics_bar), mines_display, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(statistics_bar), left_spacer, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(statistics_bar), face_display, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(statistics_bar), timer_display, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(statistics_bar), right_spacer, TRUE, TRUE, 0);
+    gtk_box_pack_end(GTK_BOX(statistics_bar), timer_display, FALSE, FALSE, 0);
+
 
 
     gtk_box_pack_start(GTK_BOX(vbox), statistics_bar, FALSE, FALSE, 0);
@@ -155,14 +162,8 @@ void run_minesweeper_gui(int argc, char** argv) {
     // Create an event box and wrap the grid inside it
     event_box = gtk_event_box_new();
     gtk_container_add(GTK_CONTAINER(event_box), grid);
-
-    // Add the event box to the main vertical box
     gtk_box_pack_start(GTK_BOX(vbox), event_box, TRUE, TRUE, 0);
-
-    // Set event mask to allow button press events on the event box
     gtk_widget_add_events(event_box, GDK_BUTTON_PRESS_MASK);
-
-    // Connect the unified button press event handler to the event box
     g_signal_connect(event_box, "button-press-event", G_CALLBACK(on_grid_button_press), NULL);
 
     // Show the window
