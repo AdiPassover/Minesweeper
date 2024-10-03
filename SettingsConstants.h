@@ -1,0 +1,11 @@
+#ifndef MINESWEEPER_MODECONSTANTS_H
+#define MINESWEEPER_MODECONSTANTS_H
+
+#define EASY   0
+#define MEDIUM 1
+#define HARD   2
+#define EVIL   3
+
+extern const int MODES[4][3];
+
+#endif //MINESWEEPER_SETTINGSCONSTANTS_H
