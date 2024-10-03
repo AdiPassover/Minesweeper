@@ -5,7 +5,7 @@ LDFLAGS = `pkg-config --libs gtk+-3.0`
 TARGET = Minesweeper
 MAIN = main.c
 LOGIC_SRC = logic/board.c logic/cell.c logic/game_difficulties.c logic/timer.c
-GUI_SRC = GUI/gui_manager.c GUI/update_display.c GUI/sprites/sprite_sheets.c
+GUI_SRC = GUI/gui_manager.c GUI/update_display.c GUI/sprites/sprite_sheets.c GUI/difficulty_dialog_box.c
 SRCS = $(MAIN) $(LOGIC_SRC) $(GUI_SRC)
 OBJS = $(SRCS:.c=.o)
 

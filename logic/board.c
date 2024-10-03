@@ -131,7 +131,7 @@ GameState click_adjacent_unrevealed_cells(Board *board, unsigned int row, unsign
         for (unsigned int j = ((col == 0) ? 0 : col - 1); j <= ((col == board->cols - 1) ? board->cols - 1 : col + 1); j++) {
             if (board->cells[i][j].is_revealed) continue;
             GameState state = click_cell(board, i, j);
-            if (state != GAME_ONGOING) return state; // TODO test to see if I can stop after GAME_WON or wait for GAME_OVER
+            if (state != GAME_ONGOING) return state;
         }
     }
 

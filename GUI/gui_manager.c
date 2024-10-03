@@ -1,6 +1,7 @@
 #include "gui_manager.h"
 #include "update_display.h"
 #include "../logic/timer.h"
+#include "difficulty_dialog_box.h"
 #include "sprites/sprite_sheets.h"
 
 static GtkWidget *grid;
@@ -12,6 +13,7 @@ static GtkWidget *face_display;
 static Board *board;
 static Difficulty current_difficulty;
 static TimerData timerData;
+static GameState current_state;
 
 
 void game_over() {
@@ -33,22 +35,18 @@ void update_gui_screen() {
 void reset_screen_gui() {
     if (board) free_board(board);
     board = create_board_from_difficulty(current_difficulty);
+    current_state = GAME_ONGOING;
     update_face_display(face_display, SMILEY_FACE);
     update_gui_screen();
     stop_timer(&timerData);
     update_timer_display(timer_display, 0);
 }
 
-Difficulty get_custom_difficulty() {
-    // TODO
-    return DIFFICULTIES[EASY];
-}
-
 void on_difficulty_selected(GtkWidget *widget, gpointer data) {
     int difficulty_index = GPOINTER_TO_INT(data);
 
     if (difficulty_index == CUSTOM) {
-        DIFFICULTIES[CUSTOM] = get_custom_difficulty();
+        DIFFICULTIES[CUSTOM] = open_difficulty_dialog_box(widget);
     }
 
     current_difficulty = DIFFICULTIES[difficulty_index];
@@ -62,17 +60,19 @@ void on_reset_image_clicked(GtkWidget *widget, gpointer data) {
 
 // Unified callback function for both left and right clicks
 gboolean on_grid_button_press(GtkWidget *widget, GdkEventButton *event) {
+    if (current_state != GAME_ONGOING) return TRUE;
+
     unsigned int row = (unsigned int)event->y / (TILE_HEIGHT * SCALE_FACTOR);
     unsigned int col = (unsigned int)event->x / (TILE_WIDTH * SCALE_FACTOR);
 
     if (event->type == GDK_BUTTON_PRESS) {
         if (event->button == 1) {
             if (board->is_empty) start_timer(&timerData);
-            GameState state = click_cell(board, row, col);
+            current_state = click_cell(board, row, col);
 
-            if (state == GAME_OVER) {
+            if (current_state == GAME_OVER) {
                 game_over();
-            } else if (state == GAME_WON) {
+            } else if (current_state == GAME_WON) {
                 game_won();
             }
         } else if (event->button == 3) {
@@ -90,6 +90,7 @@ void run_minesweeper_gui(int argc, char** argv) {
     // Initialize static variables
     current_difficulty = DIFFICULTIES[DEFAULT_DIFFICULTY];
     board = create_board_from_difficulty(current_difficulty);
+    current_state = GAME_ONGOING;
 
     // Create the main window
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
