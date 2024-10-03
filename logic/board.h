@@ -3,9 +3,9 @@
 
 #include "cell.h"
 #include "game_state.h"
-#include "game_settings.h"
+#include "game_difficulties.h"
 
-typedef struct { // TODO add a flag counter
+typedef struct {
     unsigned int rows;
     unsigned int cols;
     unsigned int tiles_left;
@@ -19,8 +19,8 @@ Board* create_board(unsigned int rows, unsigned int cols, unsigned int mines);
 void free_board(Board *board);
 
 void clear_board(Board *board);
-void reveal_board(Board *board);
-void reveal_mines(Board *board);
+void win_board(Board *board);
+void lose_board(Board *board);
 
 void print_board(Board *board);
 

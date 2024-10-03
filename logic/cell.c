@@ -9,6 +9,8 @@ char cell_to_char(Cell cell) { // TODO missing mine exploded
         }
     } else { // revealed
         if (cell.type == MINE) {
+            if (cell.is_flagged)
+                return FLAGGED_CHAR;
             return MINE_CHAR;
         } else if (cell.is_flagged) {
             return FALSE_FLAG_CHAR;

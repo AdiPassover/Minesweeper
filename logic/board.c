@@ -8,9 +8,7 @@ GameState clicked_revealed_cell(Board *board, unsigned int row, unsigned int col
 GameState click_adjacent_unrevealed_cells(Board *board, unsigned int row, unsigned int col);
 
 Board* create_board_from_difficulty(Difficulty difficulty) {
-    create_board(DIFFICULTY_MODES[difficulty][NUM_ROWS_INDEX],
-                 DIFFICULTY_MODES[difficulty][NUM_COLS_INDEX],
-                 DIFFICULTY_MODES[difficulty][NUM_MINES_INDEX]);
+    return create_board(difficulty.rows, difficulty.cols, difficulty.mines);
 }
 
 Board *create_board(unsigned int rows, unsigned int cols, unsigned int mines) {
@@ -89,7 +87,7 @@ void randomize_empty_board(Board *board, unsigned int clicked_row, unsigned int 
     }
 
     srand(time(NULL));
-    unsigned int mines_placed = 0; // TODO make a case for when mines_left > total_cells / 2
+    unsigned int mines_placed = 0;
     unsigned int num_mines = board->rows * board->cols - board->tiles_left;
     while (mines_placed < num_mines) {
         unsigned int row = rand() % board->rows;
@@ -163,17 +161,24 @@ Cell get_cell_type(Board *board, unsigned int row, unsigned int col) {
     return board->cells[row][col];
 }
 
-void reveal_board(Board *board) {
+void win_board(Board *board) {
     for (unsigned int i = 0; i < board->rows; i++) {
-        for (unsigned int j = 0; j < board->cols; j++)
-            board->cells[i][j].is_revealed = true;
+        for (unsigned int j = 0; j < board->cols; j++) {
+            if (board->cells[i][j].type == MINE) {
+                board->cells[i][j].is_flagged = true;
+                board->flags_placed++;
+            }
+            else
+                board->cells[i][j].is_revealed = true;
+        }
     }
 }
 
-void reveal_mines(Board *board) {
+void lose_board(Board *board) {
     for (unsigned int i = 0; i < board->rows; i++) {
         for (unsigned int j = 0; j < board->cols; j++) {
-            if (board->cells[i][j].type == MINE) board->cells[i][j].is_revealed = true;
+            if (board->cells[i][j].type == MINE || board->cells[i][j].is_flagged)
+                board->cells[i][j].is_revealed = true;
         }
     }
 }

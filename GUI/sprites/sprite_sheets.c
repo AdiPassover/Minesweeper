@@ -50,9 +50,7 @@ GtkWidget *get_image_from_sprite_sheet(const char *path, int x, int y, int width
     return image;
 }
 
-
-
-GtkWidget *get_cell_image(Cell cell) { // TODO differentiate between win/lose
+GtkWidget *get_cell_image(Cell cell) {
     char cell_char = cell_to_char(cell);
     switch (cell_char) {
         case HIDDEN_CHAR:
