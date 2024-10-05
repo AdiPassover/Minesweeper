@@ -1,6 +1,6 @@
 #include "cell.h"
 
-char cell_to_char(Cell cell) { // TODO missing mine exploded
+char cell_to_char(Cell cell) {
     if (!cell.is_revealed) {
         if (!cell.is_flagged) { // hidden empty cell
             return HIDDEN_CHAR;

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c17 -Wall -Wextra `pkg-config --cflags gtk+-3.0` -g ## TODO remove -g
+CFLAGS = -std=c17 -Wall -Wextra `pkg-config --cflags gtk+-3.0`
 LDFLAGS = `pkg-config --libs gtk+-3.0`
 
 TARGET = Minesweeper
