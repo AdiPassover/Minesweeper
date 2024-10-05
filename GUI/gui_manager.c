@@ -94,9 +94,9 @@ gboolean on_grid_button_press(GtkWidget *widget, GdkEventButton *event) {
     unsigned int row = (unsigned int)event->y / (TILE_HEIGHT * SCALE_FACTOR);
     unsigned int col = (unsigned int)event->x / (TILE_WIDTH * SCALE_FACTOR);
 
-    if (event->type == GDK_BUTTON_PRESS && event->button == 1) { // left mouse button pressed on unrevealed cell
+    if (event->type == GDK_BUTTON_PRESS && event->button == 1) { // left mouse button pressed
         if (!is_cell_revealed(board, row, col)) {
-            set_cell_image(row, col, get_clicked_cell_image());
+            if (!board->cells[row][col].is_flagged) set_cell_image(row, col, get_clicked_cell_image());
         } else if (get_cell_type(board, row, col).type > 0) {
             for (unsigned int i = ((row == 0) ? 0 : row - 1); i <= ((row == board->rows - 1) ? board->rows - 1 : row + 1); i++) {
                 for (unsigned int j = ((col == 0) ? 0 : col - 1); j <= ((col == board->cols - 1) ? board->cols - 1 : col + 1); j++) {
