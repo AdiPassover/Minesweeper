@@ -4,8 +4,13 @@
 #include "difficulty_dialog_box.h"
 #include "sprites/sprite_sheets.h"
 
+const char* BACKGROUND_COLOR = "#c8c4c4";
+const int BUTTON_HEIGHT = 25;
+
+static GtkWidget *window;
+static GtkWidget *statistics_bar;
 static GtkWidget *grid;
-static GtkWidget *event_box;  // Wrap the grid in an event box
+static GtkWidget *grid_event_box;
 static GtkWidget *mines_display;
 static GtkWidget *timer_display;
 static GtkWidget *face_display;
@@ -33,12 +38,12 @@ void update_gui_screen() {
 }
 
 void reset_screen_gui() {
+    stop_timer(&timerData);
     if (board) free_board(board);
     board = create_board_from_difficulty(current_difficulty);
     current_state = GAME_ONGOING;
     update_face_display(face_display, SMILEY_FACE);
     update_gui_screen();
-    stop_timer(&timerData);
     update_timer_display(timer_display, 0);
 }
 
@@ -46,11 +51,20 @@ void on_difficulty_selected(GtkWidget *widget, gpointer data) {
     int difficulty_index = GPOINTER_TO_INT(data);
 
     if (difficulty_index == CUSTOM) {
-        DIFFICULTIES[CUSTOM] = open_difficulty_dialog_box(widget);
+        DIFFICULTIES[CUSTOM] = open_difficulty_dialog_box(window);
     }
 
     current_difficulty = DIFFICULTIES[difficulty_index];
     reset_screen_gui();
+
+    int grid_width = board->cols * TILE_WIDTH * SCALE_FACTOR;
+    int grid_height = board->rows * TILE_HEIGHT * SCALE_FACTOR;
+
+    int total_height = grid_height + gtk_widget_get_allocated_height(statistics_bar) + BUTTON_HEIGHT;
+
+    gtk_window_resize(GTK_WINDOW(window), grid_width, total_height);
+
+    gtk_widget_show_all(window);
 }
 
 // Function to handle clicks on the reset image
@@ -87,50 +101,56 @@ gboolean on_grid_button_press(GtkWidget *widget, GdkEventButton *event) {
 void run_minesweeper_gui(int argc, char** argv) {
     gtk_init(&argc, &argv);
 
-    // Initialize static variables
     current_difficulty = DIFFICULTIES[DEFAULT_DIFFICULTY];
     board = create_board_from_difficulty(current_difficulty);
     current_state = GAME_ONGOING;
 
-    // Create the main window
-    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     // Create a vertical box to hold everything
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
-    // Create difficulties bar
+    // Create and apply CSS to set the background color and button style
+    GtkCssProvider *cssProvider = gtk_css_provider_new();
+    // Use the constant BACKGROUND_COLOR
+    gchar *css_data = g_strdup_printf(
+            "window, event-box { background-color: %s; }"
+            "button { background-color: %s; min-width: 40px; min-height: %dpx; padding: 3px; }",
+            BACKGROUND_COLOR, BACKGROUND_COLOR, BUTTON_HEIGHT
+    );
+    gtk_css_provider_load_from_data(cssProvider, css_data, -1, NULL);
+    g_free(css_data);
+
+    // Apply CSS provider to the window
+    GtkStyleContext *styleContext = gtk_widget_get_style_context(window);
+    gtk_style_context_add_provider(styleContext, GTK_STYLE_PROVIDER(cssProvider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+
     GtkWidget *difficulties_bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     for (unsigned int i = 0; i < NUM_DIFFICULTIES; i++) {
         GtkWidget *button = gtk_button_new_with_label(DIFFICULTY_NAMES[i]);
+        GtkStyleContext *buttonStyleContext = gtk_widget_get_style_context(button);
+        gtk_style_context_add_provider(buttonStyleContext, GTK_STYLE_PROVIDER(cssProvider),
+                                       GTK_STYLE_PROVIDER_PRIORITY_USER);
         g_signal_connect(button, "clicked", G_CALLBACK(on_difficulty_selected), GINT_TO_POINTER(i));
-        gtk_box_pack_start(GTK_BOX(difficulties_bar), button, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(difficulties_bar), button, FALSE, TRUE, 0);
     }
     gtk_box_pack_start(GTK_BOX(vbox), difficulties_bar, FALSE, FALSE, 0);
 
-    // Create statistics bar
-    GtkWidget *statistics_bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    statistics_bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
-    // Create mines display and timer display
     mines_display = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     timer_display = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-
-    // Create face display as a box
     face_display = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
-    // Create an event box for the face image
     GtkWidget *face_event_box = gtk_event_box_new();
     g_signal_connect(face_event_box, "button-press-event", G_CALLBACK(on_reset_image_clicked), NULL);
 
-    // Create face image
     GtkWidget *face_image = get_face_image(SMILEY_FACE);
     gtk_container_add(GTK_CONTAINER(face_event_box), face_image);  // Add the face image to the event box
-
-    // Pack the event box into the face display box
     gtk_box_pack_start(GTK_BOX(face_display), face_event_box, FALSE, FALSE, 0);
 
-    // Pack mine and timer images
     for (int i = 0; i < 3; i++) {
         GtkWidget *mine_image = get_digit_image(0);
         gtk_box_pack_start(GTK_BOX(mines_display), mine_image, FALSE, FALSE, 0);
@@ -139,37 +159,38 @@ void run_minesweeper_gui(int argc, char** argv) {
         gtk_box_pack_start(GTK_BOX(timer_display), timer_image, FALSE, FALSE, 0);
     }
 
-    // Create spacer widgets
     GtkWidget *left_spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     GtkWidget *right_spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
-    // Pack statistics bar
-    gtk_box_pack_start(GTK_BOX(statistics_bar), mines_display, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(statistics_bar), mines_display, FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(statistics_bar), left_spacer, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(statistics_bar), face_display, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(statistics_bar), face_display, FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(statistics_bar), right_spacer, TRUE, TRUE, 0);
-    gtk_box_pack_end(GTK_BOX(statistics_bar), timer_display, FALSE, FALSE, 0);
-
-
+    gtk_box_pack_end(GTK_BOX(statistics_bar), timer_display, FALSE, TRUE, 0);
 
     gtk_box_pack_start(GTK_BOX(vbox), statistics_bar, FALSE, FALSE, 0);
 
     init_timer(&timerData, update_timer_display, timer_display);
 
-    // Create a grid to hold the tiles
     grid = gtk_grid_new();
 
     // Create an event box and wrap the grid inside it
-    event_box = gtk_event_box_new();
-    gtk_container_add(GTK_CONTAINER(event_box), grid);
-    gtk_box_pack_start(GTK_BOX(vbox), event_box, TRUE, TRUE, 0);
-    gtk_widget_add_events(event_box, GDK_BUTTON_PRESS_MASK);
-    g_signal_connect(event_box, "button-press-event", G_CALLBACK(on_grid_button_press), NULL);
+    grid_event_box = gtk_event_box_new();
+    gtk_container_add(GTK_CONTAINER(grid_event_box), grid);
+    gtk_box_pack_start(GTK_BOX(vbox), grid_event_box, TRUE, TRUE, 0);
+
+    // Apply the background color to the event box
+    GtkStyleContext *eventBoxStyleContext = gtk_widget_get_style_context(grid_event_box);
+    gtk_style_context_add_provider(eventBoxStyleContext, GTK_STYLE_PROVIDER(cssProvider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+
+    gtk_widget_add_events(grid_event_box, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(grid_event_box, "button-press-event", G_CALLBACK(on_grid_button_press), NULL);
+    gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
 
     // Show the window
     update_gui_screen();
     gtk_widget_show_all(window);
-    gtk_window_set_title(GTK_WINDOW(window), "Minesweeper | Adi Passover");
+    gtk_window_set_title(GTK_WINDOW(window), "Minesweeper");
 
     // Start the GTK main loop
     gtk_main();

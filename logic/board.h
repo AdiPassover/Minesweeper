@@ -8,7 +8,7 @@
 typedef struct {
     unsigned int rows;
     unsigned int cols;
-    unsigned int tiles_left;
+    unsigned int tiles_left; // Number of tiles left to be revealed to win the game
     unsigned int flags_placed;
     bool is_empty;
     Cell **cells;

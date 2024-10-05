@@ -92,7 +92,7 @@ void randomize_empty_board(Board *board, unsigned int clicked_row, unsigned int 
     while (mines_placed < num_mines) {
         unsigned int row = rand() % board->rows;
         unsigned int col = rand() % board->cols;
-        if (board->cells[row][col].type != MINE && row != clicked_row && col != clicked_col) {
+        if (board->cells[row][col].type != MINE && (row != clicked_row || col != clicked_col)) {
             board->cells[row][col].type = MINE;
             mines_placed++;
             update_adjacent_cells(board, row, col);

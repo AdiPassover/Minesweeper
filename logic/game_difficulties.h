@@ -7,7 +7,7 @@ typedef enum {
     EASY = 0,
     MEDIUM = 1,
     HARD = 2,
-    NIGHTMARE = 3,
+    DEMON = 3,
     CUSTOM = 4
 } DifficultyIndex;
 

@@ -7,5 +7,5 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-// TODO fix size of the screen and buttons
 // TODO add clicked sprites
+// TODO show exploded mine

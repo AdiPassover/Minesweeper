@@ -14,6 +14,6 @@ const char* const DIFFICULTY_NAMES[NUM_DIFFICULTIES] = {
         "Easy",
         "Medium",
         "Hard",
-        "Nightmare",
+        "Demon",
         "Custom"
 };

@@ -15,8 +15,6 @@ gboolean timer_callback_wrapper(gpointer data) {
 static void* timer_thread_function(void *arg) {
     TimerData *timer_data = (TimerData *)arg;
     timer_data->timer_seconds = 0;
-
-
     const int checks_per_second = 1000 / CHECK_INTERVAL_MS;
 
     while (timer_data->timer_running) {

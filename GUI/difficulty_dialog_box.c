@@ -12,8 +12,7 @@ static gboolean validate_and_get_input(GtkWidget *rows_entry, GtkWidget *cols_en
     int cols = atoi(cols_text);
     int mines = atoi(mines_text);
 
-    // Basic validation: all inputs must be positive integers and mines must be less than total cells
-    if (rows > 0 && cols > 0 && mines >= 0 && mines < rows * cols) {
+    if (rows > 0 && cols > 8 && mines >= 0 && mines < rows * cols) {
         custom_difficulty->rows = rows;
         custom_difficulty->cols = cols;
         custom_difficulty->mines = mines;
