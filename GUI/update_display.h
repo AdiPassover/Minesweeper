@@ -18,7 +18,7 @@ void update_timer_display(GtkWidget *timer_display, unsigned int seconds);
 void update_face_display(GtkWidget *face_display, enum FaceIndices face);
 
 // updates the entire screen
-void update_screen(Board *board, int mines_left, GtkWidget *grid, GtkWidget *mines_left_display);
+void update_board_and_mines_left(Board *board, int mines_left, GtkWidget *grid, GtkWidget *mines_left_display);
 
 
 #endif //MINESWEEPER_UPDATE_DISPLAY_H

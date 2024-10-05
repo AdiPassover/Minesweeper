@@ -50,6 +50,14 @@ GtkWidget *get_image_from_sprite_sheet(const char *path, int x, int y, int width
     return image;
 }
 
+GtkWidget *get_clicked_cell_image() {
+    return get_image_from_sprite_sheet(TILES_PATH, TILE_WIDTH * EMPTY_REVEALED_TILE, 0, TILE_WIDTH, TILE_HEIGHT);
+}
+
+GtkWidget *get_exploded_mine_image() {
+    return get_image_from_sprite_sheet(TILES_PATH, TILE_WIDTH * MINE_EXPLODED_TILE, 0, TILE_WIDTH, TILE_HEIGHT);
+}
+
 GtkWidget *get_cell_image(Cell cell) {
     char cell_char = cell_to_char(cell);
     switch (cell_char) {

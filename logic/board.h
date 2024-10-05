@@ -18,15 +18,15 @@ Board* create_board_from_difficulty(Difficulty difficulty);
 Board* create_board(unsigned int rows, unsigned int cols, unsigned int mines);
 void free_board(Board *board);
 
-void clear_board(Board *board);
 void win_board(Board *board);
 void lose_board(Board *board);
 
-void print_board(Board *board);
+void print_board(Board *board); // For debugging purposes
 
 GameState click_cell(Board *board, unsigned int row, unsigned int col);
 void right_click_cell(Board *board, unsigned int row, unsigned int col);
 
 Cell get_cell_type(Board *board, unsigned int row, unsigned int col);
+bool is_cell_revealed(Board *board, unsigned int row, unsigned int col);
 
 #endif //MINESWEEPER_BOARD_H

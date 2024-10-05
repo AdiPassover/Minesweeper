@@ -59,17 +59,6 @@ void free_board(Board *board) {
     free(board);
 }
 
-void clear_board(Board *board) {
-    for (unsigned int i = 0; i < board->rows; i++) {
-        for (unsigned int j = 0; j < board->cols; j++) {
-            board->cells[i][j].is_flagged = false;
-            board->cells[i][j].is_revealed = false;
-            board->cells[i][j].type = EMPTY;
-        }
-    }
-    board->is_empty = true;
-}
-
 void update_adjacent_cells(Board *board, unsigned int row, unsigned int col) {
     for (unsigned int i = ((row == 0) ? 0 : row - 1); i <= ((row == board->rows - 1) ? board->rows - 1 : row + 1); i++) {
         for (unsigned int j = ((col == 0) ? 0 : col - 1); j <= ((col == board->cols - 1) ? board->cols - 1 : col + 1); j++) {
@@ -159,6 +148,10 @@ void right_click_cell(Board *board, unsigned int row, unsigned int col) {
 
 Cell get_cell_type(Board *board, unsigned int row, unsigned int col) {
     return board->cells[row][col];
+}
+
+bool is_cell_revealed(Board *board, unsigned int row, unsigned int col) {
+    return board->cells[row][col].is_revealed;
 }
 
 void win_board(Board *board) {

@@ -21,20 +21,8 @@ static TimerData timerData;
 static GameState current_state;
 
 
-void game_over() {
-    stop_timer(&timerData);
-    lose_board(board);
-    update_face_display(face_display, LOSE_FACE);
-}
-
-void game_won() {
-    stop_timer(&timerData);
-    win_board(board);
-    update_face_display(face_display, WIN_FACE);
-}
-
-void update_gui_screen() {
-    update_screen(board, current_difficulty.mines - board->flags_placed, grid, mines_display);
+void update_gui_board_and_mines_left() {
+    update_board_and_mines_left(board, current_difficulty.mines - board->flags_placed, grid, mines_display);
 }
 
 void reset_screen_gui() {
@@ -43,7 +31,7 @@ void reset_screen_gui() {
     board = create_board_from_difficulty(current_difficulty);
     current_state = GAME_ONGOING;
     update_face_display(face_display, SMILEY_FACE);
-    update_gui_screen();
+    update_gui_board_and_mines_left();
     update_timer_display(timer_display, 0);
 }
 
@@ -67,36 +55,94 @@ void on_difficulty_selected(GtkWidget *widget, gpointer data) {
     gtk_widget_show_all(window);
 }
 
-// Function to handle clicks on the reset image
-void on_reset_image_clicked(GtkWidget *widget, gpointer data) {
+void on_reset_image_press(GtkWidget *widget, gpointer data) {
+    update_face_display(face_display, SMILEY_FACE_PRESSED);
+}
+
+void on_reset_image_release(GtkWidget *widget, gpointer data) {
     reset_screen_gui();
 }
 
-// Unified callback function for both left and right clicks
+void set_cell_image(unsigned int row, unsigned int col, GtkWidget *image) {
+    // Clear the current cell's image
+    GtkWidget *current_image = gtk_grid_get_child_at(GTK_GRID(grid), col, row);
+    if (current_image) gtk_widget_destroy(current_image);
+
+    // Set the clicked cell image
+    gtk_grid_attach(GTK_GRID(grid), image, col, row, 1, 1);
+    gtk_widget_show_all(grid);
+}
+
+void game_over(unsigned int row, unsigned int col) {
+    stop_timer(&timerData);
+    lose_board(board);
+    update_gui_board_and_mines_left();
+    update_face_display(face_display, LOSE_FACE);
+    set_cell_image(row, col, get_exploded_mine_image());
+}
+
+void game_won() {
+    stop_timer(&timerData);
+    win_board(board);
+    update_gui_board_and_mines_left();
+    update_face_display(face_display, WIN_FACE);
+}
+
 gboolean on_grid_button_press(GtkWidget *widget, GdkEventButton *event) {
     if (current_state != GAME_ONGOING) return TRUE;
 
     unsigned int row = (unsigned int)event->y / (TILE_HEIGHT * SCALE_FACTOR);
     unsigned int col = (unsigned int)event->x / (TILE_WIDTH * SCALE_FACTOR);
 
-    if (event->type == GDK_BUTTON_PRESS) {
-        if (event->button == 1) {
-            if (board->is_empty) start_timer(&timerData);
-            current_state = click_cell(board, row, col);
-
-            if (current_state == GAME_OVER) {
-                game_over();
-            } else if (current_state == GAME_WON) {
-                game_won();
+    if (event->type == GDK_BUTTON_PRESS && event->button == 1) { // left mouse button pressed on unrevealed cell
+        if (!is_cell_revealed(board, row, col)) {
+            set_cell_image(row, col, get_clicked_cell_image());
+        } else if (get_cell_type(board, row, col).type > 0) {
+            for (unsigned int i = ((row == 0) ? 0 : row - 1); i <= ((row == board->rows - 1) ? board->rows - 1 : row + 1); i++) {
+                for (unsigned int j = ((col == 0) ? 0 : col - 1); j <= ((col == board->cols - 1) ? board->cols - 1 : col + 1); j++) {
+                    if (!board->cells[i][j].is_revealed && !board->cells[i][j].is_flagged)
+                        set_cell_image(i, j, get_clicked_cell_image());
+                }
             }
-        } else if (event->button == 3) {
-            right_click_cell(board, row, col);
         }
-        update_gui_screen();
+
+        update_face_display(face_display, SURPRISED_FACE);
+
+        return TRUE;  // Return TRUE to signal that the event has been handled
     }
 
-    return TRUE; // Returning TRUE means the event has been handled
+    return FALSE;  // Return FALSE for further event processing
 }
+
+
+gboolean on_grid_button_release(GtkWidget *widget, GdkEventButton *event) {
+    if (current_state != GAME_ONGOING) return TRUE;
+
+    unsigned int row = (unsigned int)event->y / (TILE_HEIGHT * SCALE_FACTOR);
+    unsigned int col = (unsigned int)event->x / (TILE_WIDTH * SCALE_FACTOR);
+
+    if (event->type == GDK_BUTTON_RELEASE && event->button == 1) { // left mouse button released
+        if (board->is_empty) start_timer(&timerData);
+        current_state = click_cell(board, row, col);
+
+        if (current_state == GAME_OVER) {
+            game_over(row, col);
+        } else if (current_state == GAME_WON) {
+            game_won();
+        } else {
+            update_face_display(face_display, SMILEY_FACE);
+            update_gui_board_and_mines_left();
+        }
+
+    } else if (event->type == GDK_BUTTON_RELEASE && event->button == 3) { // right mouse button released
+        right_click_cell(board, row, col);
+        update_gui_board_and_mines_left();
+    }
+
+    return TRUE;  // Return TRUE to signal that the event has been handled
+}
+
+
 
 void run_minesweeper_gui(int argc, char** argv) {
     gtk_init(&argc, &argv);
@@ -145,7 +191,8 @@ void run_minesweeper_gui(int argc, char** argv) {
     face_display = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
     GtkWidget *face_event_box = gtk_event_box_new();
-    g_signal_connect(face_event_box, "button-press-event", G_CALLBACK(on_reset_image_clicked), NULL);
+    g_signal_connect(face_event_box, "button-press-event", G_CALLBACK(on_reset_image_press), NULL);
+    g_signal_connect(face_event_box, "button-release-event", G_CALLBACK(on_reset_image_release), NULL);
 
     GtkWidget *face_image = get_face_image(SMILEY_FACE);
     gtk_container_add(GTK_CONTAINER(face_event_box), face_image);  // Add the face image to the event box
@@ -183,12 +230,14 @@ void run_minesweeper_gui(int argc, char** argv) {
     GtkStyleContext *eventBoxStyleContext = gtk_widget_get_style_context(grid_event_box);
     gtk_style_context_add_provider(eventBoxStyleContext, GTK_STYLE_PROVIDER(cssProvider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
-    gtk_widget_add_events(grid_event_box, GDK_BUTTON_PRESS_MASK);
+    gtk_widget_add_events(grid_event_box, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
     g_signal_connect(grid_event_box, "button-press-event", G_CALLBACK(on_grid_button_press), NULL);
+    g_signal_connect(grid_event_box, "button-release-event", G_CALLBACK(on_grid_button_release), NULL);
+
     gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
 
     // Show the window
-    update_gui_screen();
+    update_gui_board_and_mines_left();
     gtk_widget_show_all(window);
     gtk_window_set_title(GTK_WINDOW(window), "Minesweeper");
 

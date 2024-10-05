@@ -80,7 +80,7 @@ void update_face_display(GtkWidget *face_display, enum FaceIndices face) {
 }
 
 
-void update_screen(Board *board, int mines_left, GtkWidget *grid, GtkWidget *mines_left_display) {
+void update_board_and_mines_left(Board *board, int mines_left, GtkWidget *grid, GtkWidget *mines_left_display) {
     update_board_display(grid, board);
     update_mines_left_display(mines_left_display, mines_left);
 }

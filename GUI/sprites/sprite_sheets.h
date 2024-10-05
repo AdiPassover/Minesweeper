@@ -30,6 +30,8 @@ enum TileIndices {
     FALSE_FLAG_TILE = 7
 };
 GtkWidget *get_cell_image(Cell cell);
+GtkWidget *get_clicked_cell_image();
+GtkWidget *get_exploded_mine_image();
 
 enum FaceIndices {
     SMILEY_FACE = 0,
